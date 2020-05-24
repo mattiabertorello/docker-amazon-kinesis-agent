@@ -38,6 +38,5 @@ Leave the above variables unset if you wish to use IAM role authentication.
 
 Additional environment variables:
 
-* `LOG_LEVEL`: Log level. Can be `TRACE`, `DEBUG`, `INFO`, `WARN`, or `ERROR`.  (Default: `INFO`)
 * `JAVA_START_HEAP`: Java initial heap size (default: `32m`)
 * `JAVA_MAX_HEAP`: Java maximum heap size (default: `512m`)
