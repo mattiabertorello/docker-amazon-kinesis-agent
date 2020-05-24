@@ -1,20 +1,18 @@
-FROM centos:7
+FROM amazonlinux:2.0.20200406.0
 
-RUN yum -y upgrade && \
-    yum -y install curl
+ENV AGENT_VERSION=1.1.5
 
-ENV JAVA_VERSION=8 \
-    JAVA_UPDATE=66 \
-    JAVA_BUILD=17 \
-    JAVA_START_HEAP=32m \
-    JAVA_MAX_HEAP=512m \
-    LOG_LEVEL="INFO"
+RUN yum install -y curl tar gzip initscripts \
+    && curl -o amazon-kinesis-agent-$AGENT_VERSION.tar.gz https://codeload.github.com/awslabs/amazon-kinesis-agent/tar.gz/$AGENT_VERSION \
+    && tar xvzf amazon-kinesis-agent-$AGENT_VERSION.tar.gz \
+    && cd amazon-kinesis-agent-$AGENT_VERSION \
+    && ./setup --install \
+    && rm -rf amazon-kinesis-agent-$AGENT_VERSION amazon-kinesis-agent-$AGENT_VERSION.tar.gz \
+    && yum clean all
 
-RUN curl -LO -H "Cookie: oraclelicense=accept-securebackup-cookie;" \
-        "http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION}u${JAVA_UPDATE}-b${JAVA_BUILD}/jdk-${JAVA_VERSION}u${JAVA_UPDATE}-linux-x64.rpm" && \
-    yum -y install jq "jdk-${JAVA_VERSION}u${JAVA_UPDATE}-linux-x64.rpm" https://s3.amazonaws.com/streaming-data-agent/aws-kinesis-agent-1.0-1.amzn1.noarch.rpm && \
-    rm -f "jdk-${JAVA_VERSION}u${JAVA_UPDATE}-linux-x64.rpm"
+COPY docker-entrypoint.sh health-check.sh ./
 
-COPY agent.json /etc/aws-kinesis/agent.json
+# https://www.australtech.net/docker-healthcheck-instruction/
+HEALTHCHECK --interval=1m --timeout=3s CMD ./health-check.sh
 
-CMD /usr/bin/start-aws-kinesis-agent -L $LOG_LEVEL -l /dev/stdout
+ENTRYPOINT ["./docker-entrypoint.sh"]
