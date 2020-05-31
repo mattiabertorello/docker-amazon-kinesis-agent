@@ -16,6 +16,9 @@ RUN yum install -y curl tar gzip initscripts \
 
 COPY docker-entrypoint.sh health-check.sh ./
 
+# replace the default log4j configuration to move the logs in the stout
+COPY config/log4j.xml /etc/aws-kinesis/log4j.xml
+
 # https://www.australtech.net/docker-healthcheck-instruction/
 HEALTHCHECK --interval=1m --timeout=3s CMD ./health-check.sh
 

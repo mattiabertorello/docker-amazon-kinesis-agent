@@ -15,14 +15,12 @@ trap 'kill ${!}; term_handler' SIGTERM SIGINT
 # run application
 /etc/init.d/aws-kinesis-agent start
 
-agent_log=/var/log/aws-kinesis-agent/aws-kinesis-agent.log
-while [ ! -f "$agent_log" ]
-do
-  sleep 0.5
-done
+# get the agent pid. Example: `aws-kinesis-agent (pid  14) is running...`
+agent_pid=$(/etc/init.d/aws-kinesis-agent status | tr -dc '0-9')
 
 # wait forever
 while true
 do
-  tail -n +1 -f $agent_log & wait ${!}
+  # tail the stout and sterr of the agent process
+  tail -qF "/proc/$agent_pid/fd/1" "/proc/$agent_pid/fd/2"  & wait ${!}
 done
